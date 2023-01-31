@@ -5,6 +5,8 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
@@ -19,6 +21,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -67,6 +70,25 @@ public class TestApplication extends Arquillian {
         WebTarget echoEndpointTarget = ClientBuilder.newClient().target(uri);
         Response response = echoEndpointTarget.request(TEXT_PLAIN).get();
         Assert.assertEquals(response.getStatus(), HttpURLConnection.HTTP_OK);
+    }
+
+    @Test
+    @RunAsClient
+    public void traceId() {
+        String uri = baseURL.toExternalForm() + "rest";
+        System.out.println("uri = " + uri);
+        WebTarget echoEndpointTarget = ClientBuilder.newClient().target(uri);
+        Response response = echoEndpointTarget.request(TEXT_PLAIN).get();
+        MultivaluedMap<String, Object> headers = response.getHeaders();
+        boolean traceIdEnabled = false;
+        for (Map.Entry<String, List<Object>> entry : headers.entrySet()) {
+            String key = entry.getKey();
+            if(key.equals("traceId")){
+                traceIdEnabled = true;
+            }
+        }
+
+        Assert.assertEquals(traceIdEnabled, true);
     }
 
     @WebServlet(urlPatterns = "/servlet")

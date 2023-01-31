@@ -53,7 +53,7 @@ public interface ServerSpanDecorator {
         public void decorateRequest(ContainerRequestContext requestContext, Span span) {
             Tags.COMPONENT.set(span, "jaxrs");
             Tags.HTTP_METHOD.set(span, requestContext.getMethod());
-
+           
             String url = URIUtils.url(requestContext.getUriInfo().getRequestUri());
             if (url != null) {
                 Tags.HTTP_URL.set(span, url);
@@ -63,6 +63,7 @@ public interface ServerSpanDecorator {
         @Override
         public void decorateResponse(ContainerResponseContext responseContext, Span span) {
             Tags.HTTP_STATUS.set(span, responseContext.getStatus());
+            responseContext.getHeaders().add("traceId", span.context().toTraceId());
         }
     };
 }
